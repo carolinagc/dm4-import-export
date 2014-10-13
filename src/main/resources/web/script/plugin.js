@@ -21,21 +21,25 @@ dm4c.add_plugin("net.abriraqui.import-export", function(){
 	} 
 	
 	function export_topicmap_toSJON(){
-	   var export_file = dm4c.restc.request("POST", "/import-export/export/json")
-	    dm4c.show_topic(new Topic(export_file), "show")
+            var export_file = dm4c.restc.request("POST", "/import-export/export/json")
+            dm4c.show_topic(new Topic(export_file), "show")
 
 	}
 
 	function export_topicmap_toSVG(){
-	   var export_file = dm4c.restc.request("POST", "/import-export/export/svg")
-	    alert("Topicmap exported to SVG")
-	}
+            var svg_exporter_response = JSON.parse(dm4c.restc.request("POST", 
+                "/import-export/export/svg", undefined, undefined, undefined, "text"))
+            var dialog_message = "<p>Exported Topicmap to SVG Document<br/>"
+                + "<br/><i>" + svg_exporter_response['filepath'] + "</i></p>"
+            dm4c.ui.dialog({"id": "svg-export-ok-dialog", "title": "File Export - OK", 
+                "content": dialog_message});
+        }
 
 
 	function import_topicmap(){
-	    dm4c.get_plugin("de.deepamehta.files").open_upload_dialog("/import-export/import", function(importedTopicmap){
-		dm4c.get_plugin("de.deepamehta.topicmaps").add_topicmap(importedTopicmap.id)
-	    })
+            dm4c.get_plugin("de.deepamehta.files").open_upload_dialog("/import-export/import", function(importedTopicmap){
+                dm4c.get_plugin("de.deepamehta.topicmaps").add_topicmap(importedTopicmap.id)
+            })
 	}
 
     })
