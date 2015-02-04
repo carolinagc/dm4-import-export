@@ -61,16 +61,18 @@ public class ImportExportPlugin extends PluginActivator {
     @Transactional
     @Path("/export/json")
     public Topic exportTopicmapToJSON(@CookieParam("dm4_topicmap_id") long topicmapId) {
-	try {
-	    log.info("Exporting Topicmap ######### " + topicmapId);
-	    TopicmapViewmodel topicmap = topicmapsService.getTopicmap(topicmapId, true);
-	    String json = topicmap.toJSON().toString();
-	    InputStream in = new ByteArrayInputStream(json.getBytes("UTF-8"));
-	    Topic createdFile = filesService.createFile(in, "/topicmap-" + topicmapId + ".txt");
-	    return createdFile;
-	} catch (Exception e) {
-	    throw new RuntimeException("Export failed", e );
-	} 
+        try {
+            log.info("Exporting Topicmap ######### " + topicmapId);
+            TopicmapViewmodel topicmap = topicmapsService.getTopicmap(topicmapId, true);
+            String json = topicmap.toJSON().toString();
+            InputStream in = new ByteArrayInputStream(json.getBytes("UTF-8"));
+            String jsonFile = "/topicmap-" + topicmapId + ".txt";
+            String documentPath = findExportDirectoryPath() + jsonFile;
+            Topic createdFile = filesService.createFile(in, documentPath);
+            return createdFile;
+        } catch (Exception e) {
+            throw new RuntimeException("Export failed", e );
+        } 
     }
 
     @POST
@@ -147,114 +149,114 @@ public class ImportExportPlugin extends PluginActivator {
     @Path("/import")
     @Consumes("multipart/form-data")
     public Topic importTopicmap(UploadedFile file) {
-	try {
-	    String json = file.getString();
-
-	    JSONObject topicmap = new JSONObject(json);
-	    JSONObject info = topicmap.getJSONObject("info");
-
-	    JSONArray assocsArray = topicmap.getJSONArray("assocs");
-	    JSONArray topicsArray = topicmap.getJSONArray("topics");
-	  
-	    String origTopicmapName = info.getString("value");
-	    Topic importedTopicmap = 
+        try {
+            String json = file.getString();
+            
+            JSONObject topicmap = new JSONObject(json);
+            JSONObject info = topicmap.getJSONObject("info");
+            
+            JSONArray assocsArray = topicmap.getJSONArray("assocs");
+            JSONArray topicsArray = topicmap.getJSONArray("topics");
+            
+            String origTopicmapName = info.getString("value");
+            Topic importedTopicmap = 
                 topicmapsService.createTopicmap("Imported Topicmap: "+ origTopicmapName
-                    ,"dm4.webclient.default_topicmap_renderer");
-	    long topicmapId = importedTopicmap.getId();
-	    log.info("###### importedTopicmapId " + topicmapId);
+                                                ,"dm4.webclient.default_topicmap_renderer");
+            long topicmapId = importedTopicmap.getId();
+            log.info("###### importedTopicmapId " + topicmapId);
             // 
-	    Map<Long, Long> mapTopicIds = new HashMap();
-	    importTopics(topicsArray, mapTopicIds, topicmapId);
-	    importAssociations(assocsArray,mapTopicIds, topicmapId);
-	    return importedTopicmap;	    
-	} catch (Exception e) {
-	    throw new RuntimeException("Importing Topicmap FAILED", e);
-	}
+            Map<Long, Long> mapTopicIds = new HashMap();
+            importTopics(topicsArray, mapTopicIds, topicmapId);
+            importAssociations(assocsArray,mapTopicIds, topicmapId);
+            return importedTopicmap;	    
+        } catch (Exception e) {
+            throw new RuntimeException("Importing Topicmap FAILED", e);
+        }
     }
 
     // Import topics
     private void importTopics(JSONArray topicsArray, Map<Long, Long> mapTopicIds, long topicmapId) {
-	for (int i = 0, size = topicsArray.length(); i < size; i++)	{
-	    try {
-		JSONObject topic =  topicsArray.getJSONObject(i);
-		createTopic(topic, mapTopicIds, topicmapId);
-	    } catch (Exception e){
-		log.warning("Topic NOT imported!!" + e);
-	    }
-	}
+        for (int i = 0, size = topicsArray.length(); i < size; i++)	{
+            try {
+                JSONObject topic =  topicsArray.getJSONObject(i);
+                createTopic(topic, mapTopicIds, topicmapId);
+            } catch (Exception e){
+                log.warning("Topic NOT imported!!" + e);
+            }
+        }
     }
     
     // Import associations
     private void importAssociations(JSONArray assocsArray, Map<Long, Long> mapTopicIds, long topicmapId) {
-	for (int i=0, size = assocsArray.length(); i< size; i++) {		    
-	    try {
-		JSONObject association = assocsArray.getJSONObject(i);
-		createAssociation(association, mapTopicIds, topicmapId);
-	    } catch (Exception e) {
-		log.warning("Association NOT imported");
-	    }
-	}
+        for (int i=0, size = assocsArray.length(); i< size; i++) {		    
+            try {
+                JSONObject association = assocsArray.getJSONObject(i);
+                createAssociation(association, mapTopicIds, topicmapId);
+            } catch (Exception e) {
+                log.warning("Association NOT imported");
+            }
+        }
     }
     
     private String color(String typeUri) {
-	if (typeUri.equals("dm4.contacts.institution")) {
-	    return "lightblue";
-	} else if (typeUri.equals("dm4.contacts.person")) {
-	    return "lightblue";
-	} else if (typeUri.equals("dm4.notes.note")) {
-	    return "lightblue";
-	} else {
-	    return "lightblue";
-	}
+        if (typeUri.equals("dm4.contacts.institution")) {
+            return "lightblue";
+        } else if (typeUri.equals("dm4.contacts.person")) {
+            return "lightblue";
+        } else if (typeUri.equals("dm4.notes.note")) {
+            return "lightblue";
+        } else {
+            return "lightblue";
+        }
     }
 
     private String typeIconDataUri(String typeUri) throws IOException {
-	TopicType topicType = dms.getTopicType(typeUri);
-	String iconPath = (String) topicType.getViewConfig("dm4.webclient.view_config","dm4.webclient.icon");
-	int sep = iconPath.indexOf("/", 2);
-	// String pluginPath = iconPath.substring(1, sep);
-	// Plugin plugin = dms.getPlugin(pluginPath);
-	String imagePath = "web"+iconPath.substring(sep);
-	InputStream iconIS = getStaticResource(imagePath);
-	log.fine("##### IconIS " + iconIS);
+        TopicType topicType = dms.getTopicType(typeUri);
+        String iconPath = (String) topicType.getViewConfig("dm4.webclient.view_config","dm4.webclient.icon");
+        int sep = iconPath.indexOf("/", 2);
+        // String pluginPath = iconPath.substring(1, sep);
+        // Plugin plugin = dms.getPlugin(pluginPath);
+        String imagePath = "web"+iconPath.substring(sep);
+        InputStream iconIS = getStaticResource(imagePath);
+        log.fine("##### IconIS " + iconIS);
         // 
-	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	byte [] buffer = new byte[1024];
-	int count = 0;
-	while ( (count = iconIS.read(buffer)) != -1 ) {
-	    baos.write(buffer, 0, count);
-	}
-	byte [] fileContent = baos.toByteArray();
-	// all chars in encoded are guaranteed to be 7-bit ASCII
-	byte[] encoded = Base64.encode(fileContent);
-	String imgBase64Str = new String(encoded);
-	log.fine("##### IMG BASE64 " + imgBase64Str);
-	// 
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte [] buffer = new byte[1024];
+        int count = 0;
+        while ( (count = iconIS.read(buffer)) != -1 ) {
+            baos.write(buffer, 0, count);
+        }
+        byte [] fileContent = baos.toByteArray();
+        // all chars in encoded are guaranteed to be 7-bit ASCII
+        byte[] encoded = Base64.encode(fileContent);
+        String imgBase64Str = new String(encoded);
+        log.fine("##### IMG BASE64 " + imgBase64Str);
+        // 
         if (iconPath == null) {
-	    iconPath = "/de.deepamehta.webclient/images/ball-gray.png";
+            iconPath = "/de.deepamehta.webclient/images/ball-gray.png";
         }
         return "data:image/png;base64," + imgBase64Str;
     }
   
     private void createTopic(JSONObject topic, Map<Long, Long> mapTopicIds, long topicmapId) throws JSONException {
-	TopicModel model = new TopicModel(topic);
-	ChildTopicsModel viewProps =new ChildTopicsModel(topic.getJSONObject("view_props")); 
-	long origTopicId = model.getId();
+        TopicModel model = new TopicModel(topic);
+        ChildTopicsModel viewProps =new ChildTopicsModel(topic.getJSONObject("view_props")); 
+        long origTopicId = model.getId();
         Topic newTopic = dms.createTopic(model);
-	long topicId = newTopic.getId();
-	mapTopicIds.put(origTopicId, topicId);
-	topicmapsService.addTopicToTopicmap(topicmapId, topicId, viewProps);
+        long topicId = newTopic.getId();
+        mapTopicIds.put(origTopicId, topicId);
+        topicmapsService.addTopicToTopicmap(topicmapId, topicId, viewProps);
     }
     
     private void createAssociation(JSONObject association, Map<Long, Long> mapTopicIds, long topicmapId) {
-	AssociationModel assocModel = new AssociationModel(association);		
-	RoleModel role1 = assocModel.getRoleModel1();
-	role1.setPlayerId(mapTopicIds.get(role1.getPlayerId()));
-	RoleModel role2 = assocModel.getRoleModel2();
-	role2.setPlayerId(mapTopicIds.get(role2.getPlayerId()));
+        AssociationModel assocModel = new AssociationModel(association);		
+        RoleModel role1 = assocModel.getRoleModel1();
+        role1.setPlayerId(mapTopicIds.get(role1.getPlayerId()));
+        RoleModel role2 = assocModel.getRoleModel2();
+        role2.setPlayerId(mapTopicIds.get(role2.getPlayerId()));
         Association newAssociation = dms.createAssociation(assocModel);
-	long assocId = newAssociation.getId();
-	topicmapsService.addAssociationToTopicmap(topicmapId, assocId);		 
+        long assocId = newAssociation.getId();
+        topicmapsService.addAssociationToTopicmap(topicmapId, assocId);		 
     }
     
     private String findExportDirectoryPath() {
