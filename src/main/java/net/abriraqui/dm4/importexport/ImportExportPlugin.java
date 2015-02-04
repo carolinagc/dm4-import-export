@@ -6,7 +6,9 @@ import de.deepamehta.core.Topic;
 import de.deepamehta.core.TopicType;
 import de.deepamehta.core.Association;
 import de.deepamehta.core.model.TopicModel;
-import de.deepamehta.core.model.CompositeValueModel;
+//import de.deepamehta.core.model.CompositeValueModel;
+import de.deepamehta.core.model.ChildTopicsModel;
+
 import de.deepamehta.core.model.AssociationModel;
 import de.deepamehta.core.model.RoleModel;
 
@@ -236,7 +238,7 @@ public class ImportExportPlugin extends PluginActivator {
   
     private void createTopic(JSONObject topic, Map<Long, Long> mapTopicIds, long topicmapId) throws JSONException {
 	TopicModel model = new TopicModel(topic);
-	CompositeValueModel viewProps =new CompositeValueModel(topic.getJSONObject("view_props")); 
+	ChildTopicsModel viewProps =new ChildTopicsModel(topic.getJSONObject("view_props")); 
 	long origTopicId = model.getId();
         Topic newTopic = dms.createTopic(model);
 	long topicId = newTopic.getId();

@@ -12,19 +12,19 @@
   <parent>
     <groupId>de.deepamehta</groupId>
     <artifactId>deepamehta-plugin-parent</artifactId>
-    <version>4.4-SNAPSHOT</version>
+    <version>4.4.3</version>
   </parent>
 
   <dependencies>
     <dependency>    
       <groupId>de.deepamehta</groupId>
       <artifactId>deepamehta-topicmaps</artifactId>
-      <version>4.4-SNAPSHOT</version>
+      <version>4.4.3</version>
     </dependency>    
     <dependency>
       <groupId>de.deepamehta</groupId>
       <artifactId>deepamehta-files</artifactId>
-      <version>4.4-SNAPSHOT</version>
+      <version>4.4.3</version>
     </dependency>
   </dependencies>
 
