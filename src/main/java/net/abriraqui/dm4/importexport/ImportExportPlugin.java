@@ -146,6 +146,7 @@ public class ImportExportPlugin extends PluginActivator {
     }   
 
     @POST
+    @Transactional
     @Path("/import")
     @Consumes("multipart/form-data")
     public Topic importTopicmap(UploadedFile file) {
