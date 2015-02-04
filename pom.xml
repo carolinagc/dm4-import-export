@@ -5,8 +5,8 @@
   <modelVersion>4.0.0</modelVersion>
   <name>DeepaMehta 4 Import Export</name>
   <groupId>net.abriraqui.dm4</groupId>
-  <artifactId>dm44-SNAPSHOT-import-export</artifactId>
-  <version>0.3-SNAPSHOT</version>
+  <artifactId>dm44-import-export</artifactId>
+  <version>0.3</version>
   <packaging>bundle</packaging>
 
   <parent>
