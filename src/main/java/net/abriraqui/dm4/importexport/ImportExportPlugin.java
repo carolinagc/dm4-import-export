@@ -66,9 +66,15 @@ public class ImportExportPlugin extends PluginActivator {
             TopicmapViewmodel topicmap = topicmapsService.getTopicmap(topicmapId, true);
             String json = topicmap.toJSON().toString();
             InputStream in = new ByteArrayInputStream(json.getBytes("UTF-8"));
-            String jsonFile = "/topicmap-" + topicmapId + ".txt";
-            String documentPath = findExportDirectoryPath() + jsonFile;
-            Topic createdFile = filesService.createFile(in, documentPath);
+            String jsonFile = "topicmap-" + topicmapId + ".txt";
+           
+            Topic createdFile = filesService.createFile(in, "/" + jsonFile);
+
+            // If you are using the DeepaMehta 4.4 standard distribution instead of DIGITAL MEMEX karaf distribution,
+            // please comment previous line (71)  and uncomment the next 2 lines(75 & 76).
+            // String documentPath = findExportDirectoryPath() + jsonFile;
+            //Topic createdFile = filesService.createFile(in, documentPath);
+
             return createdFile;
         } catch (Exception e) {
             throw new RuntimeException("Export failed", e );
